@@ -393,7 +393,7 @@ export default function Portfolio() {
               {themeName === "dark" ? <IconSun /> : <IconMoon />}
             </button>
             <SocialBtn icon={<IconLinkedIn />} href="https://www.linkedin.com/in/aditya-kumar-3241b6286/" />
-            <SocialBtn icon={<IconGithub />} href="https://github.com/aditya-kumar" />
+            <SocialBtn icon={<IconGithub />} href="https://github.com/Rememberful" />
           </div>
         </div>
       ) : (
@@ -460,8 +460,8 @@ export default function Portfolio() {
             >
               {themeName === "dark" ? <IconSun /> : <IconMoon />}
             </button>
-            <SocialBtn icon={<IconLinkedIn />} href="https://linkedin.com/in/aditya-kumar" />
-            <SocialBtn icon={<IconGithub />} href="https://github.com/aditya-kumar" />
+            <SocialBtn icon={<IconLinkedIn />} href="https://www.linkedin.com/in/aditya-kumar-3241b6286/"/>
+            <SocialBtn icon={<IconGithub />} href="https://github.com/Rememberful" />
             <SocialBtn icon={<IconTwitter />} href="#" />
             <SocialBtn icon={<IconInstagram />} href="https://www.instagram.com/notaditya.exe/" />
           </div>
