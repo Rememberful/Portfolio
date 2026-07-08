@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import adityaImage from "./assets/Aditya-image - Copy.jpeg";
 import project1 from "./assets/project-1.png";
 import project2 from "./assets/project-2.png";
@@ -164,10 +164,10 @@ function IconInstagram() {
     </svg>
   );
 }
-function IconTwitter() {
+function IconMedium() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+      <path d="M13.54 12a6.8 6.8 0 01-6.77 6.82A6.8 6.8 0 010 12a6.8 6.8 0 016.77-6.82A6.8 6.8 0 0113.54 12zm7.42 0c0 3.54-1.51 6.42-3.38 6.42S14.2 15.54 14.2 12s1.51-6.42 3.38-6.42S20.96 8.46 20.96 12zM24 12c0 3.17-.53 5.75-1.19 5.75S21.62 15.17 21.62 12s.53-5.75 1.19-5.75S24 8.83 24 12z" />
     </svg>
   );
 }
@@ -281,12 +281,51 @@ function SmartImage({ src, alt, skeletonBase, skeletonShine, radius }) {
   );
 }
 
+// Small translucent circles that drift slowly upward in the background.
+function FloatingBubbles({ accent }) {
+  const bubbles = useMemo(() => {
+    return Array.from({ length: 180 }, (_, i) => ({
+      id: i,
+      left: Math.random() * 100,
+      size:  10+ Math.random() * 22,
+      duration: 16 + Math.random() * 18,
+      delay: Math.random() * -30,
+      opacity: 0.1 + Math.random() * 0.22,
+      driftX: (Math.random() - 0.5) * 140,
+    }));
+  }, []);
+
+  return (
+    <div style={{ position: "fixed", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 0 }}>
+      {bubbles.map((b) => (
+        <span
+          key={b.id}
+          style={{
+            position: "absolute",
+            bottom: "-60px",
+            left: `${b.left}%`,
+            width: `${b.size}px`,
+            height: `${b.size}px`,
+            borderRadius: "50%",
+            background: `radial-gradient(circle at 30% 30%, ${accent}66, ${accent}1a 70%, transparent 75%)`,
+            border: `1px solid ${accent}33`,
+            "--drift": `${b.driftX}px`,
+            "--op": b.opacity,
+            animation: `float-up ${b.duration}s linear infinite`,
+            animationDelay: `${b.delay}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 export default function Portfolio() {
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [sendStatus, setSendStatus] = useState("idle"); // idle | sending | sent | error
   const [showBackToTop, setShowBackToTop] = useState(false);
-  const [themeName, setThemeName] = useState("dark");
+  const [themeName, setThemeName] = useState("light");
   const mainRef = useRef(null);
   const T = THEMES[themeName];
 
@@ -460,9 +499,9 @@ export default function Portfolio() {
             >
               {themeName === "dark" ? <IconSun /> : <IconMoon />}
             </button>
-            <SocialBtn icon={<IconLinkedIn />} href="https://www.linkedin.com/in/aditya-kumar-3241b6286/"/>
+            <SocialBtn icon={<IconLinkedIn />} href="https://www.linkedin.com/in/aditya-kumar-3241b6286/" />
             <SocialBtn icon={<IconGithub />} href="https://github.com/Rememberful" />
-            <SocialBtn icon={<IconTwitter />} href="#" />
+            <SocialBtn icon={<IconMedium />} href="https://medium.com/@adii.utsav" />
             <SocialBtn icon={<IconInstagram />} href="https://www.instagram.com/notaditya.exe/" />
           </div>
         </>
@@ -504,6 +543,13 @@ export default function Portfolio() {
           100% { background-position: -200% 0; }
         }
 
+        @keyframes float-up {
+          0% { transform: translate(0, 0); opacity: 0; }
+          8% { opacity: var(--op); }
+          92% { opacity: var(--op); }
+          100% { transform: translate(var(--drift), -115vh); opacity: 0; }
+        }
+
         .project-card {
           border: 1px solid transparent;
           border-radius: 14px;
@@ -521,6 +567,8 @@ export default function Portfolio() {
 
       <div style={{ display: "flex", height: isMobile ? "auto" : "100vh", minHeight: "100vh", alignItems: "flex-start", background: T.bg, overflow: isMobile ? "visible" : "hidden", transition: "background 0.35s ease" }}>
 
+        <FloatingBubbles accent={ORANGE} />
+
         {/* Mobile sticky header */}
         {isMobile && (
           <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, padding: "12px 16px", background: T.bg, transition: "background 0.35s ease" }}>
@@ -535,6 +583,7 @@ export default function Portfolio() {
             height: "100vh", padding: "24px 16px 24px 20px",
             display: "flex", alignItems: "center", justifyContent: "center",
             position: "sticky", top: 0, overflowY: "visible",
+            zIndex: 1,
           }}>
             <SidebarCard compact={false} />
           </aside>
@@ -548,6 +597,8 @@ export default function Portfolio() {
             overflowY: isMobile ? "visible" : "auto",
             padding: isMobile ? "96px 20px 40px" : "0 32px",
             scrollBehavior: "smooth",
+            position: "relative",
+            zIndex: 1,
           }}
         >
 
