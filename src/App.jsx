@@ -82,7 +82,7 @@ const projects = [
     color: "#1a5a8a",
     demo: null,
     github: "#",
-    image: project5,
+    // image: project5,
   },
   {
     name: "Serverless Rekognition Image Labeller",
@@ -91,7 +91,7 @@ const projects = [
     color: "#2a6e5a",
     demo: null,
     github: "#",
-    image: project6,
+    // image: project6,
   },
 ];
 
@@ -131,12 +131,29 @@ const achievements = [
   { title: "NPTEL: Ethical Hacking, Python, OS Fundamentals", sub: "NPTEL Certifications" },
 ];
 
+// Curated Medium reading lists. To add a new one later, just add another
+// { title, url } entry below — nothing else needs to change.
+const mediumLists = [
+  { title: "Web Application Security — Web Application Hacker's Handbook", url: "https://medium.com/@adii.utsav/list/web-application-security-web-application-hackers-handbook-25faf6f5df08" },
+  { title: "Cloud Computing — AWS", url: "https://medium.com/@adii.utsav/list/cloud-computing-aws-cc578bd162c1" },
+  { title: "Cloud Security — AWS", url: "https://medium.com/@adii.utsav/list/cloud-security-aws-4ed8b54489a5" },
+  { title: "MERN Full-Stack Web Development", url: "https://medium.com/@adii.utsav/list/mernfull-stack-web-development-80a733e6a268" },
+  { title: "CEH v12", url: "https://medium.com/@adii.utsav/list/cehv12-d016ac6b3bf6" },
+  { title: "Python", url: "https://medium.com/@adii.utsav/list/python-c2feccc03498" },
+  { title: "JavaScript", url: "https://medium.com/@adii.utsav/list/javascript-f7fbb8b10afe" },
+  { title: "Git & GitHub", url: "https://medium.com/@adii.utsav/list/git-github-5e6f7765ba6e" },
+];
+
+// The Medium profile whose latest posts should auto-appear in "Latest Articles".
+const MEDIUM_USERNAME = "adii.utsav";
+
 const navItems = [
   ["hero", "Home"],
   ["projects", "Projects"],
   ["experience", "Experience"],
   ["skills", "Skills"],
   ["achievements", "Achievements"],
+  ["writing", "Writing"],
   ["contact", "Contact"],
 ];
 
@@ -200,6 +217,22 @@ function IconMoon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M20 14.5A8.5 8.5 0 019.5 4a8.5 8.5 0 1010.5 10.5z" />
+    </svg>
+  );
+}
+function IconExternalLink() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+      <path d="M7 17L17 7" />
+      <path d="M8 7h9v9" />
+    </svg>
+  );
+}
+function IconEye() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12z" />
+      <circle cx="12" cy="12" r="3" />
     </svg>
   );
 }
@@ -287,7 +320,7 @@ function FloatingBubbles({ accent }) {
     return Array.from({ length: 180 }, (_, i) => ({
       id: i,
       left: Math.random() * 100,
-      size:  10+ Math.random() * 22,
+      size: 6 + Math.random() * 30,
       duration: 16 + Math.random() * 18,
       delay: Math.random() * -30,
       opacity: 0.1 + Math.random() * 0.22,
@@ -296,7 +329,7 @@ function FloatingBubbles({ accent }) {
   }, []);
 
   return (
-    <div style={{ position: "fixed", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 0 }}>
+    <div className="no-print" style={{ position: "fixed", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 0 }}>
       {bubbles.map((b) => (
         <span
           key={b.id}
@@ -326,6 +359,11 @@ export default function Portfolio() {
   const [sendStatus, setSendStatus] = useState("idle"); // idle | sending | sent | error
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [themeName, setThemeName] = useState("light");
+  const [viewCount, setViewCount] = useState(null);
+  const [pageLoading, setPageLoading] = useState(true);
+  const [splashMounted, setSplashMounted] = useState(true);
+  const [articles, setArticles] = useState([]);
+  const [articlesStatus, setArticlesStatus] = useState("loading"); // loading | ready | error
   const mainRef = useRef(null);
   const T = THEMES[themeName];
 
@@ -333,6 +371,54 @@ export default function Portfolio() {
     const handler = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener("resize", handler);
     return () => window.removeEventListener("resize", handler);
+  }, []);
+
+  // ── Branded loading splash: wait for fonts + a short minimum time so it
+  // never feels like an abrupt/unstyled flash of content. ──
+  useEffect(() => {
+    Promise.all([
+      document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve(),
+      new Promise((resolve) => setTimeout(resolve, 700)),
+    ]).then(() => setPageLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (!pageLoading) {
+      const t = setTimeout(() => setSplashMounted(false), 550);
+      return () => clearTimeout(t);
+    }
+  }, [pageLoading]);
+
+  // ── Profile view counter, via the free CountAPI hit-counter service. ──
+  // No backend of our own is needed, but the counter is only as reliable
+  // as that third-party service — it silently hides itself if the call fails.
+  useEffect(() => {
+    fetch("https://api.countapi.xyz/hit/aditya-kumar-portfolio/profile-views")
+      .then((res) => res.json())
+      .then((data) => setViewCount(data.value))
+      .catch(() => setViewCount(null));
+  }, []);
+
+  // ── Latest Medium articles, fetched client-side via an RSS-to-JSON proxy
+  // (Medium's RSS feed itself doesn't send CORS headers for browser fetches). ──
+  useEffect(() => {
+    const feedUrl = `https://medium.com/feed/@${MEDIUM_USERNAME}`;
+    const proxyUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}`;
+    fetch(proxyUrl)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status === "ok" && Array.isArray(data.items)) {
+          setArticles(data.items.slice(0, 3).map((item) => ({
+            title: item.title,
+            link: item.link,
+            date: item.pubDate,
+          })));
+          setArticlesStatus("ready");
+        } else {
+          setArticlesStatus("error");
+        }
+      })
+      .catch(() => setArticlesStatus("error"));
   }, []);
 
   // Show/hide the back-to-top button depending on scroll position.
@@ -418,9 +504,15 @@ export default function Portfolio() {
           <div style={{ flex: 1 }}>
             <div style={{ color: "#111", fontSize: "15px", fontWeight: "800" }}>Aditya Kumar</div>
             <div style={{ color: "#777", fontSize: "11px", marginTop: "2px" }}>SOC Analyst · Full-Stack Dev</div>
+            {viewCount !== null && (
+              <div style={{ display: "flex", alignItems: "center", gap: "4px", color: "#999", fontSize: "10px", marginTop: "3px" }}>
+                <IconEye /> {viewCount.toLocaleString()} views
+              </div>
+            )}
           </div>
           <div style={{ display: "flex", gap: "8px" }}>
             <button
+              className="no-print"
               onClick={toggleTheme}
               aria-label="Toggle theme"
               style={{
@@ -449,12 +541,18 @@ export default function Portfolio() {
           <div style={{ color: "#888", fontSize: "10px", marginBottom: "14px" }}>
             IT Graduate (2026) · IEM Kolkata-CGPA 9.25
           </div>
+          {viewCount !== null && (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "5px", color: "#999", fontSize: "11px", marginBottom: "14px" }}>
+              <IconEye /> {viewCount.toLocaleString()} profile views
+            </div>
+          )}
          <div style={{ color: "#555", fontSize: "13px", lineHeight: 1.6, marginBottom: "20px" }}>
             IT graduate skilled in cybersecurity, cloud computing & full-stack development.
           </div>
 
           {/* Resume download button */}
           <a
+            className="no-print"
             href="/resume.pdf"
             download
             style={{
@@ -468,7 +566,7 @@ export default function Portfolio() {
           </a>
 
           {/* Section navigation */}
-          <nav style={{
+          <nav className="no-print" style={{
             display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "8px",
             marginBottom: "20px",
           }}>
@@ -489,6 +587,7 @@ export default function Portfolio() {
 
           <div style={{ display: "flex", justifyContent: "center", gap: "12px" }}>
             <button
+              className="no-print"
               onClick={toggleTheme}
               aria-label="Toggle theme"
               style={{
@@ -563,7 +662,49 @@ export default function Portfolio() {
           box-shadow: 0 10px 30px -8px var(--accent);
           background: rgba(127,127,127,0.05);
         }
+
+        @keyframes splash-pulse {
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.08); opacity: 0.75; }
+        }
+
+        @media print {
+          .no-print { display: none !important; }
+          .print-only { display: block !important; }
+          html, body, #root { background: #ffffff !important; }
+          body { color: #000000 !important; }
+          main { height: auto !important; overflow: visible !important; padding: 0 24px !important; }
+          aside { position: static !important; height: auto !important; }
+          section { min-height: auto !important; page-break-inside: avoid; border-bottom-color: #ddd !important; }
+        }
       `}</style>
+
+      {splashMounted && (
+        <div
+          className="no-print"
+          style={{
+            position: "fixed", inset: 0, zIndex: 999,
+            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+            gap: "16px", background: T.bg,
+            opacity: pageLoading ? 1 : 0,
+            pointerEvents: pageLoading ? "auto" : "none",
+            transition: "opacity 0.55s ease",
+          }}
+        >
+          <div style={{
+            width: "64px", height: "64px", borderRadius: "16px",
+            border: `2.5px solid ${ORANGE}`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            color: ORANGE, fontWeight: 900, fontSize: "22px", letterSpacing: "1px",
+            animation: "splash-pulse 1.2s ease-in-out infinite",
+          }}>
+            AK
+          </div>
+          <div style={{ color: T.textDim, fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase" }}>
+            Loading Portfolio
+          </div>
+        </div>
+      )}
 
       <div style={{ display: "flex", height: isMobile ? "auto" : "100vh", minHeight: "100vh", alignItems: "flex-start", background: T.bg, overflow: isMobile ? "visible" : "hidden", transition: "background 0.35s ease" }}>
 
@@ -613,6 +754,10 @@ export default function Portfolio() {
                 <br/>
                 IT graduate from IEM Kolkata (CGPA 9.25) specializing in cybersecurity, cloud security,
                 and full-stack development. Experienced in Security Operations and Backend Development.
+                <br/>
+                React out to me:  <br/>
+                <strong>Email: adii.utsav@gmail.com <br/>
+                Mobile: +91 7079487671</strong>
               </p>
               <div style={{ display: "flex", gap: isMobile ? "24px" : "48px", flexWrap: "nowrap" }}>
                 {[["0", "YEARS OF\nEXPERIENCE"], ["6", "PROJECTS\nBUILT"], ["2", "INTERNSHIPS\nCOMPLETED"]].map(([num, label], i) => (
@@ -731,55 +876,128 @@ export default function Portfolio() {
             </Reveal>
           </section>
 
+          {/* ── Writing (Medium) ── */}
+          <section id="writing" style={section}>
+            <Reveal>
+              <div style={bigTitle}>LATEST</div>
+              <div style={{ ...bigTitle, color: T.text, marginBottom: "28px" }}>WRITING</div>
+
+              {/* Auto-pulled from the Medium RSS feed — no manual updates needed */}
+              <div style={{ marginBottom: "36px" }}>
+                <div style={{ fontSize: "12px", fontWeight: "700", color: ORANGE, letterSpacing: "0.5px", marginBottom: "14px" }}>
+                  RECENT ARTICLES
+                </div>
+                {articlesStatus === "loading" && (
+                  <div style={{ fontSize: "13px", color: T.textDim }}>Loading latest articles…</div>
+                )}
+                {articlesStatus === "error" && (
+                  <div style={{ fontSize: "13px", color: T.textDim }}>
+                    Couldn't load articles right now — visit the{" "}
+                    <a href={`https://medium.com/@${MEDIUM_USERNAME}`} target="_blank" rel="noreferrer" style={{ color: ORANGE, fontWeight: 600 }}>
+                      Medium profile
+                    </a>{" "}
+                    directly.
+                  </div>
+                )}
+                {articlesStatus === "ready" && articles.map((a, i) => (
+                  <a
+                    key={i}
+                    href={a.link}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px",
+                      padding: "14px 0", borderBottom: `1px solid ${T.rowBorder}`, color: T.text,
+                    }}
+                  >
+                    <span style={{ fontSize: isMobile ? "13px" : "15px", fontWeight: "600" }}>{a.title}</span>
+                    <span style={{ color: ORANGE, flexShrink: 0 }}><IconExternalLink /></span>
+                  </a>
+                ))}
+              </div>
+
+              {/* Curated reading lists — flexible: add more entries to mediumLists anytime */}
+              <div>
+                <div style={{ fontSize: "12px", fontWeight: "700", color: ORANGE, letterSpacing: "0.5px", marginBottom: "14px" }}>
+                  READING LISTS
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "10px" }}>
+                  {mediumLists.map((l, i) => (
+                    <a
+                      key={i}
+                      href={l.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{
+                        display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px",
+                        padding: "12px 14px", borderRadius: "10px",
+                        border: `1px solid ${T.rowBorder}`, color: T.text,
+                        fontSize: "13px", fontWeight: "600",
+                      }}
+                    >
+                      <span>{l.title}</span>
+                      <span style={{ color: ORANGE, flexShrink: 0 }}><IconExternalLink /></span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </Reveal>
+          </section>
+
           {/* ── Contact ── */}
           <section id="contact" style={{ ...section, borderBottom: "none" }}>
             <Reveal>
               <div style={bigTitle}>CONTACT</div>
               <div style={{ ...bigTitle, color: T.text, marginBottom: "32px" }}>ME</div>
-              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "14px", marginBottom: "14px" }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                  <label style={{ fontSize: "12px", color: T.text }}>Name</label>
-                  <input name="name" value={form.name} onChange={handleChange} placeholder="Your Name" style={inp} />
+              <div className="print-only" style={{ display: "none", fontSize: "13px", color: T.text, marginBottom: "16px" }}>
+                Reach out via email: {CONTACT_EMAIL}
+              </div>
+              <div className="no-print">
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "14px", marginBottom: "14px" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                    <label style={{ fontSize: "12px", color: T.text }}>Name</label>
+                    <input name="name" value={form.name} onChange={handleChange} placeholder="Your Name" style={inp} />
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                    <label style={{ fontSize: "12px", color: T.text }}>Email</label>
+                    <input name="email" value={form.email} onChange={handleChange} placeholder="your@email.com" style={inp} />
+                  </div>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                  <label style={{ fontSize: "12px", color: T.text }}>Email</label>
-                  <input name="email" value={form.email} onChange={handleChange} placeholder="your@email.com" style={inp} />
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "14px" }}>
+                  <label style={{ fontSize: "12px", color: T.text }}>Subject</label>
+                  <select name="subject" value={form.subject} onChange={handleChange} style={{ ...inp, appearance: "none" }}>
+                    <option value="">Select a topic...</option>
+                    <option value="job">Job Opportunity</option>
+                    <option value="collab">Collaboration</option>
+                    <option value="project">Project Inquiry</option>
+                    <option value="other">Other</option>
+                  </select>
                 </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "16px" }}>
+                  <label style={{ fontSize: "12px", color: T.text }}>Message</label>
+                  <textarea name="message" value={form.message} onChange={handleChange} placeholder="Tell me about the opportunity..." style={{ ...inp, minHeight: "140px", resize: "vertical" }} />
+                </div>
+                <button
+                  onClick={handleSendMessage}
+                  style={{
+                    width: "100%", background: ORANGE, border: "none", borderRadius: "10px",
+                    color: "#fff", fontWeight: "700", fontSize: "15px", padding: "16px",
+                    cursor: "pointer", letterSpacing: "0.5px",
+                  }}
+                >
+                  Send Message
+                </button>
+                {sendStatus === "sent" && (
+                  <p style={{ color: "#4ade80", fontSize: "13px", marginTop: "12px" }}>
+                    Opening your email app to send this message...
+                  </p>
+                )}
+                {sendStatus === "error" && (
+                  <p style={{ color: "#f87171", fontSize: "13px", marginTop: "12px" }}>
+                    Please fill in your name, email, and message first.
+                  </p>
+                )}
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "14px" }}>
-                <label style={{ fontSize: "12px", color: T.text }}>Subject</label>
-                <select name="subject" value={form.subject} onChange={handleChange} style={{ ...inp, appearance: "none" }}>
-                  <option value="">Select a topic...</option>
-                  <option value="job">Job Opportunity</option>
-                  <option value="collab">Collaboration</option>
-                  <option value="project">Project Inquiry</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "16px" }}>
-                <label style={{ fontSize: "12px", color: T.text }}>Message</label>
-                <textarea name="message" value={form.message} onChange={handleChange} placeholder="Tell me about the opportunity..." style={{ ...inp, minHeight: "140px", resize: "vertical" }} />
-              </div>
-              <button
-                onClick={handleSendMessage}
-                style={{
-                  width: "100%", background: ORANGE, border: "none", borderRadius: "10px",
-                  color: "#fff", fontWeight: "700", fontSize: "15px", padding: "16px",
-                  cursor: "pointer", letterSpacing: "0.5px",
-                }}
-              >
-                Send Message
-              </button>
-              {sendStatus === "sent" && (
-                <p style={{ color: "#4ade80", fontSize: "13px", marginTop: "12px" }}>
-                  Opening your email app to send this message...
-                </p>
-              )}
-              {sendStatus === "error" && (
-                <p style={{ color: "#f87171", fontSize: "13px", marginTop: "12px" }}>
-                  Please fill in your name, email, and message first.
-                </p>
-              )}
             </Reveal>
           </section>
 
@@ -788,6 +1006,7 @@ export default function Portfolio() {
         {/* Back to top button */}
         {showBackToTop && (
           <button
+            className="no-print"
             onClick={scrollToTop}
             aria-label="Back to top"
             style={{
