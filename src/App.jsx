@@ -32,7 +32,8 @@ function SectionFallback() {
 }
 
 function PortfolioContent() {
-  const { T, isMobile } = useUI();
+  const { T, isMobile, themeName } = useUI();
+  const bubbleColor = themeName === "dark" ? "#ffffff" : ORANGE;
   const mainRef = useRef(null);
 
   const viewCount = useViewCounter();
@@ -56,7 +57,7 @@ function PortfolioContent() {
           transition: "background 0.35s ease",
         }}
       >
-        <FloatingBubbles accent={ORANGE} count={180} />
+        <FloatingBubbles accent={bubbleColor} count={180} />
 
         {isMobile && <MobileHeader viewCount={viewCount} />}
         {!isMobile && <DesktopSidebar viewCount={viewCount} />}
