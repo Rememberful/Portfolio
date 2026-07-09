@@ -14,7 +14,7 @@ const UIContext = createContext(null);
  * the whole app instead of one per component that needs it.
  */
 export function ThemeProvider({ children }) {
-  const [themeName, setThemeName] = useState("light"); // default theme: light
+  const [themeName, setThemeName] = useState("dark"); // default theme: light
   const isMobile = useIsMobile();
 
   const toggleTheme = useCallback(() => {
