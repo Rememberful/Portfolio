@@ -19,8 +19,8 @@ export default function WritingSection() {
   return (
     <section id="writing" style={section}>
       <Reveal>
-        <div style={bigTitle}>LATEST</div>
-        <div style={{ ...bigTitle, color: T.text, marginBottom: "28px" }}>WRITING</div>
+        <div style={bigTitle}>PROOF OF</div>
+        <div style={{ ...bigTitle, color: T.text, marginBottom: "28px" }}>WORK</div>
 
         <ArticleList articles={articles} status={status} T={T} isMobile={isMobile} />
         <ReadingLists T={T} isMobile={isMobile} />

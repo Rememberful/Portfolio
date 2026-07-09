@@ -4,6 +4,6 @@ export const navItems = [
   ["experience", "Experience"],
   ["skills", "Skills"],
   ["achievements", "Achievements"],
-  ["writing", "Writing"],
+  ["writing", "Proof of Work"],
   ["contact", "Contact"],
 ];
