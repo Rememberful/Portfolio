@@ -79,7 +79,7 @@ function SidebarCardBase({ compact, viewCount }) {
             Aditya Kumar
           </div>
           <div style={{ color: "#888", fontSize: "10px", marginBottom: "14px" }}>
-            IT Graduate (2026) · IEM Kolkata-CGPA 9.25
+            B.Tech - IT (2026) · IEM Kolkata-CGPA 9.25
           </div>
           <ViewCounter viewCount={viewCount} compact={false} />
           <div style={{ color: "#555", fontSize: "13px", lineHeight: 1.6, marginBottom: "20px" }}>
