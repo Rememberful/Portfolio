@@ -1,8 +1,6 @@
 import project1 from "../assets/project-1.png";
 import project2 from "../assets/project-2.png";
 import project3 from "../assets/project-3.png";
-// project5 and project6 images are intentionally not wired up yet —
-// keep these two lines commented until those files exist in /assets.
 // import project5 from "../assets/project-5.png";
 // import project6 from "../assets/project-6.png";
 import project4 from "../assets/project-4.png";
@@ -16,6 +14,7 @@ export const projects = [
     demo: "https://stegoanalyzer-frontend.onrender.com/",
     github: "#",
     image: project1,
+    categories: ["cybersecurity"],
   },
   {
     name: "E2EE-Net – Zero-Knowledge Secure Note Vault",
@@ -25,6 +24,7 @@ export const projects = [
     demo: "https://e2ee-net.onrender.com/",
     github: "#",
     image: project2,
+    categories: ["cybersecurity", "fullstack"],
   },
   {
     name: "AuthNote System",
@@ -34,6 +34,7 @@ export const projects = [
     demo: "https://notes-frontend-j8qo.onrender.com/login",
     github: "#",
     image: project3,
+    categories: ["fullstack", "cybersecurity"],
   },
   {
     name: "ThreatScore API",
@@ -43,6 +44,7 @@ export const projects = [
     demo: "https://threatscore-dashboard.onrender.com/",
     github: "#",
     image: project4,
+    categories: ["ml", "cybersecurity", "fullstack"],
   },
   {
     name: "ScrapeSentinel",
@@ -52,6 +54,7 @@ export const projects = [
     demo: null,
     github: "#",
     // image: project5,
+    categories: ["ml", "cybersecurity"],
   },
   {
     name: "Serverless Rekognition Image Labeller",
@@ -61,5 +64,6 @@ export const projects = [
     demo: null,
     github: "#",
     // image: project6,
+    categories: ["cloud", "ml"],
   },
 ];
